@@ -380,6 +380,9 @@
         <button onclick="showLeaderboard()" style="background: linear-gradient(135deg, #b829ff 0%, #9000ff 100%);">
             🏆 CLASSEMENT
         </button>
+        <button onclick="showInfo()" style="background: linear-gradient(135deg, #1b2735 0%, #2a3f5f 100%); color: var(--neon); border: 2px solid var(--neon);">
+            ℹ️ INFOS
+        </button>
         <div style="margin-top: 20px; font-size: 0.9em; cursor: pointer; text-decoration: underline; opacity: 0.7;" onclick="logout()">
             🚪 Changer de compte
         </div>
@@ -390,6 +393,34 @@
         <h2>🏆 CLASSEMENT</h2>
         <div id="leaderboard"></div>
         <button onclick="backToSetup()">⬅️ RETOUR</button>
+    </div>
+    
+    <!-- Info Box -->
+    <div id="info-box" class="menu-box hidden">
+        <h2>ℹ️ INFORMATIONS</h2>
+        <div id="info-content" style="margin: 20px 0; text-align: left; max-height: 400px; overflow-y: auto; padding: 15px; background: rgba(27, 39, 53, 0.5); border-radius: 8px; border: 2px solid var(--neon);">
+            <p style="margin-bottom: 15px;">Chargement des informations...</p>
+        </div>
+        <button onclick="backToSetup()">⬅️ RETOUR</button>
+        <div style="margin-top: 20px; font-size: 0.7em; opacity: 0.3; cursor: pointer;" onclick="checkAdminAccess()">
+            ⚙️
+        </div>
+    </div>
+    
+    <!-- Admin Box -->
+    <div id="admin-box" class="menu-box hidden">
+        <h2>🔒 ADMIN</h2>
+        <input type="password" id="adminPassword" placeholder="Mot de passe" style="margin: 20px 0;">
+        <button onclick="loginAdmin()">ACCÉDER</button>
+        <button onclick="backToInfo()">ANNULER</button>
+    </div>
+    
+    <!-- Admin Edit Box -->
+    <div id="admin-edit-box" class="menu-box hidden">
+        <h2>⚙️ MODIFIER INFOS</h2>
+        <textarea id="adminInfoEdit" style="width: 100%; height: 300px; margin: 20px 0; padding: 15px; background: #1b2735; border: 2px solid var(--neon); color: white; border-radius: 8px; font-family: 'Courier New', monospace; resize: vertical;"></textarea>
+        <button onclick="saveAdminInfo()">💾 ENREGISTRER</button>
+        <button onclick="backToInfo()">ANNULER</button>
     </div>
 </div>
 
@@ -470,44 +501,56 @@ function loadUserData() {
     if(saved) {
         const data = JSON.parse(saved);
         user.best = data.best || 0;
+    } else {
+        user.best = 0;
     }
 }
 
 function saveUserData() {
-    localStorage.setItem('reflex_elite_' + user.name, JSON.stringify(user));
-    saveToLeaderboard();
+    // Sauvegarder les données personnelles du joueur
+    localStorage.setItem('reflex_elite_' + user.name, JSON.stringify({ best: user.best }));
+    
+    // Mettre à jour le classement global
+    updateGlobalLeaderboard();
 }
 
-function saveToLeaderboard() {
-    let leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
-    const existing = leaderboard.findIndex(e => e.name === user.name);
+function updateGlobalLeaderboard() {
+    let leaderboard = JSON.parse(localStorage.getItem('reflex_global_leaderboard')) || [];
     
-    if(existing >= 0) {
-        if(score > leaderboard[existing].score) {
-            leaderboard[existing].score = score;
-        }
+    // Chercher si le joueur existe déjà dans le classement
+    const existingIndex = leaderboard.findIndex(e => e.name === user.name);
+    
+    if(existingIndex >= 0) {
+        // Mettre à jour le score si c'est un nouveau record
+        leaderboard[existingIndex].score = user.best;
     } else {
-        leaderboard.push({ name: user.name, score: score });
+        // Ajouter le nouveau joueur
+        leaderboard.push({ name: user.name, score: user.best });
     }
     
+    // Trier par score décroissant et garder top 10
     leaderboard.sort((a, b) => b.score - a.score);
     leaderboard = leaderboard.slice(0, 10);
-    localStorage.setItem('reflex_leaderboard', JSON.stringify(leaderboard));
+    
+    // Sauvegarder le classement global
+    localStorage.setItem('reflex_global_leaderboard', JSON.stringify(leaderboard));
 }
 
 function showLeaderboard() {
-    const leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
+    const leaderboard = JSON.parse(localStorage.getItem('reflex_global_leaderboard')) || [];
     const container = document.getElementById('leaderboard');
     
     if(leaderboard.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #888;">Aucun score enregistré</p>';
+        container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Aucun score enregistré.<br>Sois le premier à jouer !</p>';
     } else {
-        container.innerHTML = leaderboard.map((entry, i) => 
-            `<div class="leaderboard-entry">
-                <span>${i + 1}. ${entry.name}</span>
-                <span>${entry.score} pts</span>
-            </div>`
-        ).join('');
+        container.innerHTML = leaderboard.map((entry, i) => {
+            const isCurrentUser = entry.name === user.name;
+            const highlight = isCurrentUser ? ' style="background: rgba(0, 255, 204, 0.15); border: 1px solid var(--neon);"' : '';
+            return `<div class="leaderboard-entry"${highlight}>
+                <span>${i + 1}. ${entry.name}${isCurrentUser ? ' 👈' : ''}</span>
+                <span style="font-weight: bold;">${entry.score} pts</span>
+            </div>`;
+        }).join('');
     }
     
     document.getElementById('setup-box').classList.add('hidden');
@@ -516,7 +559,107 @@ function showLeaderboard() {
 
 function backToSetup() {
     document.getElementById('leaderboard-box').classList.add('hidden');
+    document.getElementById('info-box').classList.add('hidden');
+    document.getElementById('admin-box').classList.add('hidden');
+    document.getElementById('admin-edit-box').classList.add('hidden');
     document.getElementById('setup-box').classList.remove('hidden');
+}
+
+function showInfo() {
+    loadInfoContent();
+    document.getElementById('setup-box').classList.add('hidden');
+    document.getElementById('info-box').classList.remove('hidden');
+}
+
+function loadInfoContent() {
+    const savedInfo = localStorage.getItem('reflex_info_content');
+    const container = document.getElementById('info-content');
+    
+    if(savedInfo) {
+        container.innerHTML = savedInfo.replace(/\n/g, '<br>');
+    } else {
+        // Info par défaut
+        container.innerHTML = `
+            <h3 style="color: var(--neon); margin-bottom: 10px;">🎮 REFLEX ELITE - PRO EDITION</h3>
+            <p style="margin-bottom: 10px;">Version 2.0</p>
+            
+            <h4 style="color: var(--neon); margin: 15px 0 5px 0;">📖 COMMENT JOUER :</h4>
+            <p>• Clique sur les cibles ROSES avec ta souris<br>
+            • Appuie sur ESPACE pour les cibles JAUNES<br>
+            • Plus tu es rapide, plus tu gagnes de points<br>
+            • Les combos multiplient ton score<br>
+            • Récupère les power-ups pour des bonus</p>
+            
+            <h4 style="color: var(--neon); margin: 15px 0 5px 0;">⚡ POWER-UPS :</h4>
+            <p>• ⚡ = +2 Combo<br>
+            • ❤️ = +1 Vie<br>
+            • ⭐ = +100 Points<br>
+            • 🔥 = x2 Combo</p>
+            
+            <h4 style="color: var(--neon); margin: 15px 0 5px 0;">🎚️ DIFFICULTÉS :</h4>
+            <p>• FACILE : 5 vies, cibles grandes<br>
+            • NORMAL : 3 vies, équilibré<br>
+            • DIFFICILE : 2 vies, cibles petites et rapides</p>
+            
+            <h4 style="color: var(--neon); margin: 15px 0 5px 0;">⌨️ CONTRÔLES :</h4>
+            <p>• P = Pause<br>
+            • ESC = Quitter la partie</p>
+        `;
+    }
+}
+
+function checkAdminAccess() {
+    document.getElementById('info-box').classList.add('hidden');
+    document.getElementById('admin-box').classList.remove('hidden');
+    document.getElementById('adminPassword').value = '';
+}
+
+function loginAdmin() {
+    const password = document.getElementById('adminPassword').value;
+    const correctPassword = localStorage.getItem('reflex_admin_password') || 'admin123';
+    
+    if(password === correctPassword) {
+        showAdminEdit();
+    } else {
+        alert('❌ Mot de passe incorrect !');
+    }
+}
+
+function showAdminEdit() {
+    const savedInfo = localStorage.getItem('reflex_info_content');
+    const textarea = document.getElementById('adminInfoEdit');
+    
+    if(savedInfo) {
+        textarea.value = savedInfo;
+    } else {
+        textarea.value = `REFLEX ELITE - PRO EDITION
+Version 2.0
+
+COMMENT JOUER :
+• Clique sur les cibles ROSES avec ta souris
+• Appuie sur ESPACE pour les cibles JAUNES
+• Plus tu es rapide, plus tu gagnes de points
+
+Tu peux modifier ce texte !
+Ajoute tes propres infos, annonces, règles, etc.`;
+    }
+    
+    document.getElementById('admin-box').classList.add('hidden');
+    document.getElementById('admin-edit-box').classList.remove('hidden');
+}
+
+function saveAdminInfo() {
+    const content = document.getElementById('adminInfoEdit').value;
+    localStorage.setItem('reflex_info_content', content);
+    alert('✅ Informations enregistrées !');
+    backToInfo();
+}
+
+function backToInfo() {
+    document.getElementById('admin-box').classList.add('hidden');
+    document.getElementById('admin-edit-box').classList.add('hidden');
+    loadInfoContent();
+    document.getElementById('info-box').classList.remove('hidden');
 }
 
 function selectDifficulty(diff) {
@@ -762,12 +905,13 @@ function updateAccuracy() {
 function gameOver(reason) {
     gameActive = false;
     
+    // Mettre à jour le meilleur score
     if(score > user.best) {
         user.best = score;
-        saveUserData();
-    } else {
-        saveToLeaderboard();
     }
+    
+    // Sauvegarder dans le classement global
+    saveUserData();
     
     ctx.fillStyle = "rgba(0,0,0,0.9)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
