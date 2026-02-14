@@ -1,542 +1,545 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Reflex Elite - Pro Edition</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
-        :root { 
-            --neon: #00ffcc; 
-            --mouse-color: #ff007b; 
-            --space-color: #ffea00; 
-            --purple: #b829ff;
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            background: #0a0a0c; 
-            color: var(--neon); 
-            font-family: 'Orbitron', 'Courier New', monospace; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-        }
-        
-        /* Animated Background */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-        
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        
-        /* UI & Menus */
-        #overlay { 
-            position: absolute; 
-            inset: 0; 
-            background: rgba(0,0,0,0.95); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-        
-        .menu-box { 
-            background: linear-gradient(145deg, #151518 0%, #1a1a1f 100%);
-            padding: 40px; 
-            border: 3px solid var(--neon); 
-            box-shadow: 0 0 40px var(--neon), inset 0 0 20px rgba(0, 255, 204, 0.1); 
-            text-align: center; 
-            border-radius: 15px; 
-            max-width: 500px;
-            width: 90%;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        h2 { 
-            font-size: 2.5em; 
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px var(--neon);
-            letter-spacing: 3px;
-        }
-        
-        input { 
-            background: #1b2735; 
-            border: 2px solid var(--neon); 
-            color: white; 
-            padding: 15px; 
-            width: 100%; 
-            margin: 15px 0; 
-            outline: none;
-            border-radius: 8px;
-            font-family: 'Orbitron', monospace;
-            font-size: 1.1em;
-            transition: all 0.3s;
-        }
-        
-        input:focus {
-            box-shadow: 0 0 20px var(--neon);
-            border-color: white;
-        }
-        
-        button { 
-            background: linear-gradient(135deg, var(--neon) 0%, #00d4aa 100%);
-            border: none; 
-            padding: 15px 30px; 
-            color: black; 
-            font-weight: 900; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            width: 100%; 
-            transition: 0.3s;
-            border-radius: 8px;
-            font-family: 'Orbitron', monospace;
-            font-size: 1.1em;
-            margin: 10px 0;
-            letter-spacing: 2px;
-            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.4);
-        }
-        
-        button:hover { 
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(0, 255, 204, 0.6);
-        }
-        
-        button:active {
-            transform: translateY(-1px);
-        }
-        
-        .difficulty-btn {
-            background: linear-gradient(135deg, #1b2735 0%, #2a3f5f 100%);
-            color: var(--neon);
-            border: 2px solid var(--neon);
-            padding: 12px;
-            margin: 5px;
-            width: calc(33% - 10px);
-            display: inline-block;
-        }
-        
-        .difficulty-btn.selected {
-            background: linear-gradient(135deg, var(--neon) 0%, #00d4aa 100%);
-            color: black;
-        }
-        
-        /* HUD */
-        #hud { 
-            position: absolute; 
-            top: 20px; 
-            left: 20px; 
-            z-index: 50; 
-            pointer-events: none;
-            font-size: 1.2em;
-            text-shadow: 0 0 10px var(--neon);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid var(--neon);
-        }
-        
-        #stats-right {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 50;
-            pointer-events: none;
-            text-align: right;
-            font-size: 1.1em;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid var(--neon);
-        }
-        
-        .health-bar {
-            width: 200px;
-            height: 20px;
-            background: #1b2735;
-            border: 2px solid var(--neon);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .health-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff007b, var(--neon));
-            transition: width 0.3s ease;
-        }
-        
-        .pause-msg { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            font-size: 4em; 
-            display: none; 
-            text-shadow: 0 0 30px var(--neon);
-            z-index: 60;
-            font-weight: 900;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-        }
-        
-        canvas { 
-            border: 3px solid var(--neon); 
-            box-shadow: 0 0 40px var(--neon); 
-            background: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%); 
-            cursor: crosshair;
-            border-radius: 10px;
-        }
-        
-        .hidden { display: none !important; }
-        
-        .msg { 
-            position: absolute; 
-            font-weight: bold; 
-            pointer-events: none; 
-            animation: float 0.8s ease-out forwards;
-            font-size: 1.5em;
-            text-shadow: 0 0 10px currentColor;
-            z-index: 70;
-        }
-        
-        @keyframes float { 
-            from { transform: translateY(0) scale(1); opacity: 1; } 
-            to { transform: translateY(-80px) scale(1.5); opacity: 0; } 
-        }
-        
-        .label-option {
-            display: block;
-            padding: 10px;
-            margin: 10px 0;
-            border: 2px solid var(--neon);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: rgba(27, 39, 53, 0.5);
-        }
-        
-        .label-option:hover {
-            background: rgba(0, 255, 204, 0.2);
-            transform: translateX(5px);
-        }
-        
-        .label-option input {
-            width: auto;
-            margin: 0 10px 0 0;
-        }
-        
-        #leaderboard {
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 20px 0;
-            text-align: left;
-            border: 2px solid var(--neon);
-            border-radius: 8px;
-            padding: 15px;
-            background: rgba(27, 39, 53, 0.5);
-        }
-        
-        .leaderboard-entry {
-            padding: 8px;
-            margin: 5px 0;
-            border-bottom: 1px solid rgba(0, 255, 204, 0.3);
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .leaderboard-entry:nth-child(1) { color: gold; font-weight: bold; }
-        .leaderboard-entry:nth-child(2) { color: silver; }
-        .leaderboard-entry:nth-child(3) { color: #cd7f32; }
-        
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: particleExplode 0.6s ease-out forwards;
-        }
-        
-        @keyframes particleExplode {
-            to {
-                transform: translate(var(--tx), var(--ty));
-                opacity: 0;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Reflex Elite - Pro Edition</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+    :root {
+      --neon: #00ffcc;
+      --mouse-color: #ff007b;
+      --space-color: #ffea00;
+      --purple: #b829ff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0c;
+      color: var(--neon);
+      font-family: 'Orbitron', 'Courier New', monospace;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Animated Background */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* UI & Menus */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .menu-box {
+      background: linear-gradient(145deg, #151518 0%, #1a1a1f 100%);
+      padding: 40px;
+      border: 3px solid var(--neon);
+      box-shadow: 0 0 40px var(--neon), inset 0 0 20px rgba(0, 255, 204, 0.1);
+      text-align: center;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    h2 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px var(--neon);
+      letter-spacing: 3px;
+    }
+
+    input {
+      background: #1b2735;
+      border: 2px solid var(--neon);
+      color: white;
+      padding: 15px;
+      width: 100%;
+      margin: 15px 0;
+      outline: none;
+      border-radius: 8px;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1em;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      box-shadow: 0 0 20px var(--neon);
+      border-color: white;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--neon) 0%, #00d4aa 100%);
+      border: none;
+      padding: 15px 30px;
+      color: black;
+      font-weight: 900;
+      cursor: pointer;
+      text-transform: uppercase;
+      width: 100%;
+      transition: 0.3s;
+      border-radius: 8px;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1em;
+      margin: 10px 0;
+      letter-spacing: 2px;
+      box-shadow: 0 5px 20px rgba(0, 255, 204, 0.4);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0, 255, 204, 0.6);
+    }
+
+    button:active {
+      transform: translateY(-1px);
+    }
+
+    .difficulty-btn {
+      background: linear-gradient(135deg, #1b2735 0%, #2a3f5f 100%);
+      color: var(--neon);
+      border: 2px solid var(--neon);
+      padding: 12px;
+      margin: 5px;
+      width: calc(33% - 10px);
+      display: inline-block;
+    }
+
+    .difficulty-btn.selected {
+      background: linear-gradient(135deg, var(--neon) 0%, #00d4aa 100%);
+      color: black;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 50;
+      pointer-events: none;
+      font-size: 1.2em;
+      text-shadow: 0 0 10px var(--neon);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid var(--neon);
+    }
+
+    #stats-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 50;
+      pointer-events: none;
+      text-align: right;
+      font-size: 1.1em;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid var(--neon);
+    }
+
+    .health-bar {
+      width: 200px;
+      height: 20px;
+      background: #1b2735;
+      border: 2px solid var(--neon);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .health-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff007b, var(--neon));
+      transition: width 0.3s ease;
+    }
+
+    .pause-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4em;
+      display: none;
+      text-shadow: 0 0 30px var(--neon);
+      z-index: 60;
+      font-weight: 900;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    canvas {
+      border: 3px solid var(--neon);
+      box-shadow: 0 0 40px var(--neon);
+      background: radial-gradient(circle at 50% 50%, #1b2735 0%, #090a0f 100%);
+      cursor: crosshair;
+      border-radius: 10px;
+    }
+
+    .hidden { display: none !important; }
+
+    .msg {
+      position: absolute;
+      font-weight: bold;
+      pointer-events: none;
+      animation: float 0.8s ease-out forwards;
+      font-size: 1.5em;
+      text-shadow: 0 0 10px currentColor;
+      z-index: 70;
+    }
+
+    @keyframes float {
+      from { transform: translateY(0) scale(1); opacity: 1; }
+      to { transform: translateY(-80px) scale(1.5); opacity: 0; }
+    }
+
+    .label-option {
+      display: block;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid var(--neon);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(27, 39, 53, 0.5);
+    }
+
+    .label-option:hover {
+      background: rgba(0, 255, 204, 0.2);
+      transform: translateX(5px);
+    }
+
+    .label-option input {
+      width: auto;
+      margin: 0 10px 0 0;
+    }
+
+    #leaderboard {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+      text-align: left;
+      border: 2px solid var(--neon);
+      border-radius: 8px;
+      padding: 15px;
+      background: rgba(27, 39, 53, 0.5);
+    }
+
+    .leaderboard-entry {
+      padding: 8px;
+      margin: 5px 0;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .leaderboard-entry:nth-child(1) { color: gold; font-weight: bold; }
+    .leaderboard-entry:nth-child(2) { color: silver; }
+    .leaderboard-entry:nth-child(3) { color: #cd7f32; }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleExplode 0.6s ease-out forwards;
+    }
+
+    @keyframes particleExplode {
+      to {
+        transform: translate(var(--tx), var(--ty));
+        opacity: 0;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="stars" id="starsContainer"></div>
 
-<div class="stars" id="starsContainer"></div>
-
-<div id="hud">
+  <div id="hud">
     <div>🎯 SCORE: <span id="score">0</span></div>
     <div>⚡ COMBO: <span id="combo">x1</span></div>
     <div>🏆 RECORD: <span id="best">0</span></div>
     <div style="font-size: 0.8em; margin-top: 10px;">
-        <span id="player-tag">---</span> | <span id="mode-info">---</span>
+      <span id="player-tag">---</span> | <span id="mode-info">---</span>
     </div>
-</div>
+  </div>
 
-<div id="stats-right">
+  <div id="stats-right">
     <div>❤️ VIE</div>
     <div class="health-bar">
-        <div class="health-fill" id="healthBar" style="width: 100%;"></div>
+      <div class="health-fill" id="healthBar" style="width: 100%;"></div>
     </div>
     <div style="margin-top: 10px; font-size: 0.9em;">
-        <div>🎯 Précision: <span id="accuracy">100</span>%</div>
-        <div>💥 Cibles: <span id="targets-hit">0</span>/<span id="targets-total">0</span></div>
+      <div>🎯 Précision: <span id="accuracy">100</span>%</div>
+      <div>💥 Cibles: <span id="targets-hit">0</span>/<span id="targets-total">0</span></div>
     </div>
     <div style="margin-top: 10px; font-size: 0.7em; opacity: 0.7;">
-        Pause: P | Quitter: ESC
+      Pause: P | Quitter: ESC
     </div>
-</div>
+  </div>
 
-<div id="pause-text" class="pause-msg">⏸ PAUSE</div>
+  <div id="pause-text" class="pause-msg">⏸ PAUSE</div>
 
-<div id="overlay">
+  <div id="overlay">
     <!-- Auth Box -->
     <div id="auth-box" class="menu-box">
-        <h2>🎮 REFLEX ELITE</h2>
-        <p style="margin-bottom: 20px; color: #00d4aa;">PRO EDITION</p>
-        <input type="text" id="username" placeholder="Entre ton pseudo" maxlength="15">
-        <button onclick="login()">🚀 CONNEXION</button>
-        <div style="margin-top: 20px; font-size: 0.8em; color: #888;">
-            Version 2.0 | Par ton équipe dev
-        </div>
+      <h2>🎮 REFLEX ELITE</h2>
+      <p style="margin-bottom: 20px; color: #00d4aa;">PRO EDITION</p>
+      <input type="text" id="username" placeholder="Entre ton pseudo" maxlength="15">
+      <button onclick="login()">🚀 CONNEXION</button>
+      <div style="margin-top: 20px; font-size: 0.8em; color: #888;">
+        Version 2.0 | Par ton équipe dev
+      </div>
     </div>
 
     <!-- Setup Box -->
     <div id="setup-box" class="menu-box hidden">
-        <h2 id="welcome">PRÊT ?</h2>
-        
-        <div style="margin: 20px 0;">
-            <h3 style="color: var(--neon); margin-bottom: 10px;">⚙️ MODE DE JEU</h3>
-            <label class="label-option">
-                <input type="checkbox" id="checkMouse" checked> 
-                🖱️ SOURIS (<span style="color:var(--mouse-color)">Rose</span>)
-            </label>
-            <label class="label-option">
-                <input type="checkbox" id="checkSpace"> 
-                ⌨️ ESPACE (<span style="color:var(--space-color)">Jaune</span>)
-            </label>
-        </div>
-        
-        <div style="margin: 20px 0;">
-            <h3 style="color: var(--neon); margin-bottom: 10px;">🎚️ DIFFICULTÉ</h3>
-            <button class="difficulty-btn" onclick="selectDifficulty('easy')">
-                😊 FACILE
-            </button>
-            <button class="difficulty-btn selected" onclick="selectDifficulty('normal')">
-                😐 NORMAL
-            </button>
-            <button class="difficulty-btn" onclick="selectDifficulty('hard')">
-                😈 DIFFICILE
-            </button>
-        </div>
-        
-        <div style="font-size: 0.8em; border: 2px dashed var(--neon); padding: 15px; margin: 20px 0; border-radius: 8px; text-align: left;">
-            <strong>📖 RÈGLES :</strong><br>
-            • Clique/tape sur les cibles de la bonne couleur<br>
-            • Plus tu es rapide, plus tu gagnes de points<br>
-            • Combos = multiplicateur de score<br>
-            • 3 erreurs = GAME OVER<br>
-            • Récupère les power-ups ! ⚡
-        </div>
-        
-        <button onclick="startGame()">🎯 LANCER LA MISSION</button>
-        <button onclick="showLeaderboard()" style="background: linear-gradient(135deg, #b829ff 0%, #9000ff 100%);">
-            🏆 CLASSEMENT
+      <h2 id="welcome">PRÊT ?</h2>
+
+      <div style="margin: 20px 0;">
+        <h3 style="color: var(--neon); margin-bottom: 10px;">⚙️ MODE DE JEU</h3>
+        <label class="label-option">
+          <input type="checkbox" id="checkMouse" checked>
+          🖱️ SOURIS (<span style="color:var(--mouse-color)">Rose</span>)
+        </label>
+        <label class="label-option">
+          <input type="checkbox" id="checkSpace">
+          ⌨️ ESPACE (<span style="color:var(--space-color)">Jaune</span>)
+        </label>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <h3 style="color: var(--neon); margin-bottom: 10px;">🎚️ DIFFICULTÉ</h3>
+        <button class="difficulty-btn" onclick="selectDifficulty('easy')">
+          😊 FACILE
         </button>
-        <div style="margin-top: 20px; font-size: 0.9em; cursor: pointer; text-decoration: underline; opacity: 0.7;" onclick="logout()">
-            🚪 Changer de compte
-        </div>
+        <button class="difficulty-btn selected" onclick="selectDifficulty('normal')">
+          😐 NORMAL
+        </button>
+        <button class="difficulty-btn" onclick="selectDifficulty('hard')">
+          😈 DIFFICILE
+        </button>
+      </div>
+
+      <div style="font-size: 0.8em; border: 2px dashed var(--neon); padding: 15px; margin: 20px 0; border-radius: 8px; text-align: left;">
+        <strong>📖 RÈGLES :</strong><br><br>
+        • Clique/tape sur les cibles de la bonne couleur<br><br>
+        • Plus tu es rapide, plus tu gagnes de points<br><br>
+        • Combos = multiplicateur de score<br><br>
+        • 3 erreurs = GAME OVER<br><br>
+        • Récupère les power-ups ! ⚡
+      </div>
+
+      <button onclick="startGame()">🎯 LANCER LA MISSION</button>
+      <button onclick="showLeaderboard()" style="background: linear-gradient(135deg, #b829ff 0%, #9000ff 100%);">
+        🏆 CLASSEMENT
+      </button>
+      <div style="margin-top: 20px; font-size: 0.9em; cursor: pointer; text-decoration: underline; opacity: 0.7;" onclick="logout()">
+        🚪 Changer de compte
+      </div>
     </div>
-    
+
     <!-- Leaderboard Box -->
     <div id="leaderboard-box" class="menu-box hidden">
-        <h2>🏆 CLASSEMENT</h2>
-        <div id="leaderboard"></div>
-        <button onclick="backToSetup()">⬅️ RETOUR</button>
+      <h2>🏆 CLASSEMENT</h2>
+      <div id="leaderboard"></div>
+      <button onclick="backToSetup()">⬅️ RETOUR</button>
     </div>
-</div>
+  </div>
 
-<canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = 1000;
-canvas.height = 700;
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1000;
+    canvas.height = 700;
 
-let score = 0, combo = 1, targets = [], powerups = [];
-let gameActive = false, isPaused = false;
-let user = { name: "", best: 0 };
-let lastSpawn = 0, lastPowerupSpawn = 0;
-let config = { mouse: true, space: false };
-let difficulty = 'normal';
-let health = 3, maxHealth = 3;
-let targetsHit = 0, targetsTotal = 0;
-let selectedDiff = 'normal';
+    let score = 0, combo = 1, targets = [], powerups = [];
+    let gameActive = false, isPaused = false;
+    let user = { name: "", best: 0 };
+    let lastSpawn = 0, lastPowerupSpawn = 0;
+    let config = { mouse: true, space: false };
+    let difficulty = 'normal';
+    let health = 3, maxHealth = 3;
+    let targetsHit = 0, targetsTotal = 0;
+    let selectedDiff = 'normal';
 
-// Difficulty settings
-const difficultySettings = {
-    easy: { spawnRate: 1200, shrinkRate: 1.5, startRadius: 50, healthBonus: 2 },
-    normal: { spawnRate: 1000, shrinkRate: 2, startRadius: 40, healthBonus: 0 },
-    hard: { spawnRate: 700, shrinkRate: 3, startRadius: 30, healthBonus: -1 }
-};
+    // Difficulty settings
+    const difficultySettings = {
+      easy:   { spawnRate: 1200, shrinkRate: 1.5, startRadius: 50, healthBonus: 2 },
+      normal: { spawnRate: 1000, shrinkRate: 2,   startRadius: 40, healthBonus: 0 },
+      hard:   { spawnRate: 700,  shrinkRate: 3,   startRadius: 30, healthBonus: -1 }
+    };
 
-// Create stars background
-function createStars() {
-    const container = document.getElementById('starsContainer');
-    for(let i = 0; i < 100; i++) {
+    // Create stars background
+    function createStars() {
+      const container = document.getElementById('starsContainer');
+      for (let i = 0; i < 100; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         star.style.left = Math.random() * 100 + '%';
         star.style.top = Math.random() * 100 + '%';
         star.style.animationDelay = Math.random() * 3 + 's';
         container.appendChild(star);
+      }
     }
-}
-createStars();
+    createStars();
 
-// --- CONNEXION AUTO AU CHARGEMENT ---
-function checkAutoLogin() {
-    const lastUser = localStorage.getItem('reflex_last_user');
-    if (lastUser) {
-        // Connexion automatique !
+    // --- CONNEXION AUTO AU CHARGEMENT ---
+    function checkAutoLogin() {
+      const lastUser = localStorage.getItem('reflex_last_user');
+      if (lastUser) {
         user.name = lastUser;
         loadUserData();
         showSetupMenu();
+      }
     }
-}
 
-// --- LOGIN & SETUP ---
-function login() {
-    const name = document.getElementById('username').value.trim();
-    if(!name) {
+    // --- LOGIN & SETUP ---
+    function login() {
+      const name = document.getElementById('username').value.trim();
+      if (!name) {
         alert('Entre un pseudo !');
         return;
+      }
+      user.name = name;
+      localStorage.setItem('reflex_last_user', name);
+      loadUserData();
+      showSetupMenu();
     }
-    
-    user.name = name;
-    localStorage.setItem('reflex_last_user', name); // Sauvegarder pour rester connecté
-    loadUserData();
-    showSetupMenu();
-}
 
-function showSetupMenu() {
-    document.getElementById('auth-box').classList.add('hidden');
-    document.getElementById('setup-box').classList.remove('hidden');
-    document.getElementById('welcome').innerText = "👋 SALUT, " + user.name.toUpperCase();
-    document.getElementById('player-tag').innerText = user.name;
-    document.getElementById('best').innerText = user.best;
-}
+    function showSetupMenu() {
+      document.getElementById('auth-box').classList.add('hidden');
+      document.getElementById('setup-box').classList.remove('hidden');
+      document.getElementById('welcome').innerText = "👋 SALUT, " + user.name.toUpperCase();
+      document.getElementById('player-tag').innerText = user.name;
+      document.getElementById('best').innerText = user.best;
+    }
 
-function loadUserData() {
-    const saved = localStorage.getItem('reflex_elite_' + user.name);
-    if(saved) {
+    function loadUserData() {
+      const saved = localStorage.getItem('reflex_elite_' + user.name);
+      if (saved) {
         const data = JSON.parse(saved);
         user.best = data.best || 0;
+      }
     }
-}
 
-function saveUserData() {
-    localStorage.setItem('reflex_elite_' + user.name, JSON.stringify(user));
-    saveToLeaderboard();
-}
+    function saveUserData() {
+      localStorage.setItem('reflex_elite_' + user.name, JSON.stringify(user));
+      saveToLeaderboard();
+    }
 
-function saveToLeaderboard() {
-    let leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
-    const existing = leaderboard.findIndex(e => e.name === user.name);
-    
-    if(existing >= 0) {
-        if(score > leaderboard[existing].score) {
-            leaderboard[existing].score = score;
+    function saveToLeaderboard() {
+      let leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
+      const existing = leaderboard.findIndex(e => e.name === user.name);
+
+      if (existing >= 0) {
+        if (score > leaderboard[existing].score) {
+          leaderboard[existing].score = score;
         }
-    } else {
+      } else {
         leaderboard.push({ name: user.name, score: score });
-    }
-    
-    leaderboard.sort((a, b) => b.score - a.score);
-    leaderboard = leaderboard.slice(0, 10);
-    localStorage.setItem('reflex_leaderboard', JSON.stringify(leaderboard));
-}
+      }
 
-function showLeaderboard() {
-    const leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
-    const container = document.getElementById('leaderboard');
-    
-    if(leaderboard.length === 0) {
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 10);
+      localStorage.setItem('reflex_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function showLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('reflex_leaderboard')) || [];
+      const container = document.getElementById('leaderboard');
+
+      if (leaderboard.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #888;">Aucun score enregistré</p>';
-    } else {
-        container.innerHTML = leaderboard.map((entry, i) => 
-            `<div class="leaderboard-entry">
-                <span>${i + 1}. ${entry.name}</span>
-                <span>${entry.score} pts</span>
-            </div>`
+      } else {
+        container.innerHTML = leaderboard.map((entry, i) =>
+          `<div class="leaderboard-entry">
+             <span>${i + 1}. ${entry.name}</span>
+             <span>${entry.score} pts</span>
+           </div>`
         ).join('');
+      }
+
+      document.getElementById('setup-box').classList.add('hidden');
+      document.getElementById('leaderboard-box').classList.remove('hidden');
     }
-    
-    document.getElementById('setup-box').classList.add('hidden');
-    document.getElementById('leaderboard-box').classList.remove('hidden');
-}
 
-function backToSetup() {
-    document.getElementById('leaderboard-box').classList.add('hidden');
-    document.getElementById('setup-box').classList.remove('hidden');
-}
+    function backToSetup() {
+      document.getElementById('leaderboard-box').classList.add('hidden');
+      document.getElementById('setup-box').classList.remove('hidden');
+    }
 
-function selectDifficulty(diff) {
-    selectedDiff = diff;
-    document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
-    event.target.classList.add('selected');
-}
+    function selectDifficulty(diff) {
+      selectedDiff = diff;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.classList.add('selected');
+    }
 
-function logout() {
-    if(confirm('Changer de compte ?')) {
+    function logout() {
+      if (confirm('Changer de compte ?')) {
         localStorage.removeItem('reflex_last_user');
         location.reload();
+      }
     }
-}
 
-// --- GAME CLASSES ---
-class Target {
-    constructor() {
-        this.type = (config.mouse && config.space) ? (Math.random() > 0.5 ? "mouse" : "space") : (config.mouse ? "mouse" : "space");
-        
+    // --- GAME CLASSES ---
+    class Target {
+      constructor() {
+        this.type = (config.mouse && config.space)
+          ? (Math.random() > 0.5 ? "mouse" : "space")
+          : (config.mouse ? "mouse" : "space");
+
         const settings = difficultySettings[difficulty];
         this.radius = Math.max(15, settings.startRadius - (score / 15));
         this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
@@ -545,21 +548,20 @@ class Target {
         this.maxLife = Math.max(500, 2000 - (score * settings.shrinkRate));
         this.timer = this.maxLife;
         this.glow = 0;
-    }
-
-    draw() {
+      }
+      draw() {
         this.glow = (this.glow + 0.05) % (Math.PI * 2);
         const glowIntensity = Math.sin(this.glow) * 10 + 10;
-        
+
         ctx.shadowBlur = glowIntensity;
         ctx.shadowColor = this.color;
-        
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius + 8, 0, (Math.PI * 2) * (this.timer / this.maxLife));
         ctx.strokeStyle = this.color;
         ctx.lineWidth = 4;
         ctx.stroke();
-        
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
@@ -567,18 +569,18 @@ class Target {
         gradient.addColorStop(1, this.color + '88');
         ctx.fillStyle = gradient;
         ctx.fill();
-        
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
         ctx.fillStyle = 'white';
         ctx.fill();
-        
-        ctx.shadowBlur = 0;
-    }
-}
 
-class Powerup {
-    constructor() {
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    class Powerup {
+      constructor() {
         this.x = Math.random() * (canvas.width - 40) + 20;
         this.y = Math.random() * (canvas.height - 40) + 20;
         this.types = ['⚡', '❤️', '⭐', '🔥'];
@@ -586,309 +588,307 @@ class Powerup {
         this.radius = 25;
         this.lifetime = 5000;
         this.timer = this.lifetime;
-    }
-    
-    draw() {
+      }
+
+      draw() {
         ctx.save();
         ctx.font = '40px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
+
         const pulse = Math.sin(Date.now() / 200) * 5;
         ctx.shadowBlur = 20;
         ctx.shadowColor = '#ffea00';
-        
+
         ctx.fillText(this.type, this.x, this.y + pulse);
-        
         ctx.restore();
-    }
-    
-    checkCollision(mx, my) {
+      }
+
+      checkCollision(mx, my) {
         const dist = Math.hypot(mx - this.x, my - this.y);
         return dist < this.radius;
-    }
-    
-    activate() {
-        switch(this.type) {
-            case '⚡':
-                combo += 2;
-                createEffect(this.x, this.y, '+2 COMBO!', '#ffea00');
-                break;
-            case '❤️':
-                if(health < maxHealth) {
-                    health++;
-                    updateHealthBar();
-                    createEffect(this.x, this.y, '+1 VIE!', '#ff007b');
-                }
-                break;
-            case '⭐':
-                score += 100;
-                createEffect(this.x, this.y, '+100 PTS!', '#00ffcc');
-                break;
-            case '🔥':
-                combo *= 2;
-                createEffect(this.x, this.y, 'x2 COMBO!', '#ff4500');
-                break;
-        }
-    }
-}
+      }
 
-// --- GAME LOGIC ---
-function startGame() {
-    config.mouse = document.getElementById('checkMouse').checked;
-    config.space = document.getElementById('checkSpace').checked;
-    
-    if(!config.mouse && !config.space) {
-        alert('Choisis au moins un mode !');
-        return;
-    }
-
-    difficulty = selectedDiff;
-    health = maxHealth + difficultySettings[difficulty].healthBonus;
-    maxHealth = health;
-    
-    document.getElementById('overlay').classList.add('hidden');
-    
-    const modeText = (config.mouse && config.space) ? "HYBRIDE 🔥" : (config.mouse ? "SOURIS 🖱️" : "CLAVIER ⌨️");
-    document.getElementById('mode-info').innerText = modeText + " | " + difficulty.toUpperCase();
-    
-    score = 0; combo = 1; targets = []; powerups = [];
-    targetsHit = 0; targetsTotal = 0;
-    gameActive = true;
-    updateHealthBar();
-    animate();
-}
-
-// --- CONTROLS ---
-window.addEventListener('keydown', (e) => {
-    if(e.key.toLowerCase() === 'p' && gameActive) togglePause();
-    if(e.key === 'Escape' && gameActive) {
-        if(confirm('Quitter la partie ?')) {
-            gameOver('MISSION ABANDONNÉE');
-        }
-    }
-    if(!gameActive || isPaused) return;
-
-    if(e.code === "Space" && config.space) {
-        e.preventDefault();
-        checkHit(null, null, "space");
-    }
-});
-
-canvas.addEventListener('mousedown', (e) => {
-    if(!gameActive || isPaused) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    
-    for(let i = powerups.length - 1; i >= 0; i--) {
-        if(powerups[i].checkCollision(mx, my)) {
-            powerups[i].activate();
-            powerups.splice(i, 1);
-            return;
-        }
-    }
-    
-    if(config.mouse) {
-        checkHit(mx, my, "mouse");
-    }
-});
-
-function togglePause() {
-    isPaused = !isPaused;
-    document.getElementById('pause-text').style.display = isPaused ? 'block' : 'none';
-}
-
-function checkHit(mx, my, inputType) {
-    let hit = false;
-    targetsTotal++;
-    
-    for (let i = targets.length - 1; i >= 0; i--) {
-        const t = targets[i];
-        if(t.type !== inputType) continue;
-
-        const dist = inputType === "mouse" ? Math.hypot(mx - t.x, my - t.y) : 0;
-        
-        if (inputType === "space" || dist < t.radius) {
-            hit = true;
-            targets.splice(i, 1);
-            targetsHit++;
-            
-            const points = Math.floor(10 * combo * (t.timer / t.maxLife));
-            score += points;
-            combo++;
-            
-            if(mx) {
-                createEffect(mx, my, "+" + points, "#00ffcc");
-                createParticles(mx, my, t.color);
-            } else {
-                createEffect(canvas.width / 2, canvas.height / 2, "+" + points, "#00ffcc");
+      activate() {
+        switch (this.type) {
+          case '⚡':
+            combo += 2;
+            createEffect(this.x, this.y, '+2 COMBO!', '#ffea00');
+            break;
+          case '❤️':
+            if (health < maxHealth) {
+              health++;
+              updateHealthBar();
+              createEffect(this.x, this.y, '+1 VIE!', '#ff007b');
             }
             break;
+          case '⭐':
+            score += 100;
+            createEffect(this.x, this.y, '+100 PTS!', '#00ffcc');
+            break;
+          case '🔥':
+            combo *= 2;
+            createEffect(this.x, this.y, 'x2 COMBO!', '#ff4500');
+            break;
         }
+      }
     }
-    
-    if (!hit) {
+
+    // --- GAME LOGIC ---
+    function startGame() {
+      config.mouse = document.getElementById('checkMouse').checked;
+      config.space = document.getElementById('checkSpace').checked;
+
+      if (!config.mouse && !config.space) {
+        alert('Choisis au moins un mode !');
+        return;
+      }
+
+      difficulty = selectedDiff;
+      health = maxHealth + difficultySettings[difficulty].healthBonus;
+      maxHealth = health;
+
+      document.getElementById('overlay').classList.add('hidden');
+
+      const modeText = (config.mouse && config.space)
+        ? "HYBRIDE 🔥"
+        : (config.mouse ? "SOURIS 🖱️" : "CLAVIER ⌨️");
+      document.getElementById('mode-info').innerText = modeText + " | " + difficulty.toUpperCase();
+
+      score = 0; combo = 1; targets = []; powerups = [];
+      targetsHit = 0; targetsTotal = 0;
+      gameActive = true;
+      updateHealthBar();
+      animate();
+    }
+
+    // --- CONTROLS ---
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'p' && gameActive) togglePause();
+      if (e.key === 'Escape' && gameActive) {
+        if (confirm('Quitter la partie ?')) {
+          gameOver('MISSION ABANDONNÉE');
+        }
+      }
+      if (!gameActive || isPaused) return;
+      if (e.code === "Space" && config.space) {
+        e.preventDefault();
+        checkHit(null, null, "space");
+      }
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (!gameActive || isPaused) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      for (let i = powerups.length - 1; i >= 0; i--) {
+        if (powerups[i].checkCollision(mx, my)) {
+          powerups[i].activate();
+          powerups.splice(i, 1);
+          return;
+        }
+      }
+
+      if (config.mouse) {
+        checkHit(mx, my, "mouse");
+      }
+    });
+
+    function togglePause() {
+      isPaused = !isPaused;
+      document.getElementById('pause-text').style.display = isPaused ? 'block' : 'none';
+    }
+
+    function checkHit(mx, my, inputType) {
+      let hit = false;
+      targetsTotal++;
+
+      for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        if (t.type !== inputType) continue;
+
+        const dist = inputType === "mouse" ? Math.hypot(mx - t.x, my - t.y) : 0;
+        if (inputType === "space" || dist < t.radius) {
+          hit = true;
+          targets.splice(i, 1);
+          targetsHit++;
+
+          const points = Math.floor(10 * combo * (t.timer / t.maxLife));
+          score += points;
+          combo++;
+
+          if (mx) {
+            createEffect(mx, my, "+" + points, "#00ffcc");
+            createParticles(mx, my, t.color);
+          } else {
+            createEffect(canvas.width / 2, canvas.height / 2, "+" + points, "#00ffcc");
+          }
+          break;
+        }
+      }
+
+      if (!hit) {
         miss();
-    }
-    
-    updateAccuracy();
-}
+      }
 
-function miss() {
-    health--;
-    updateHealthBar();
-    combo = 1;
-    createEffect(canvas.width / 2, 100, "RATÉ ! -1 VIE", "#ff0000");
-    
-    if(health <= 0) {
+      updateAccuracy();
+    }
+
+    function miss() {
+      health--;
+      updateHealthBar();
+      combo = 1;
+      createEffect(canvas.width / 2, 100, "RATÉ ! -1 VIE", "#ff0000");
+
+      if (health <= 0) {
         gameOver("❌ PLUS DE VIE !");
+      }
     }
-}
 
-function updateHealthBar() {
-    const percent = (health / maxHealth) * 100;
-    document.getElementById('healthBar').style.width = percent + '%';
-}
+    function updateHealthBar() {
+      const percent = (health / maxHealth) * 100;
+      document.getElementById('healthBar').style.width = percent + '%';
+    }
 
-function updateAccuracy() {
-    const acc = targetsTotal > 0 ? Math.round((targetsHit / targetsTotal) * 100) : 100;
-    document.getElementById('accuracy').innerText = acc;
-    document.getElementById('targets-hit').innerText = targetsHit;
-    document.getElementById('targets-total').innerText = targetsTotal;
-}
+    function updateAccuracy() {
+      const acc = targetsTotal > 0 ? Math.round((targetsHit / targetsTotal) * 100) : 100;
+      document.getElementById('accuracy').innerText = acc;
+      document.getElementById('targets-hit').innerText = targetsHit;
+      document.getElementById('targets-total').innerText = targetsTotal;
+    }
 
-function gameOver(reason) {
-    gameActive = false;
-    
-    if(score > user.best) {
+    function gameOver(reason) {
+      gameActive = false;
+
+      if (score > user.best) {
         user.best = score;
         saveUserData();
-    } else {
+      } else {
         saveToLeaderboard();
-    }
-    
-    ctx.fillStyle = "rgba(0,0,0,0.9)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = "#00ffcc";
-    ctx.fillStyle = "#00ffcc";
-    ctx.textAlign = "center";
-    ctx.font = "bold 50px Orbitron";
-    ctx.fillText("MISSION TERMINÉE", canvas.width/2, canvas.height/2 - 100);
-    
-    ctx.shadowBlur = 15;
-    ctx.font = "25px Orbitron";
-    ctx.fillStyle = "white";
-    ctx.fillText(reason, canvas.width/2, canvas.height/2 - 40);
-    
-    ctx.font = "30px Orbitron";
-    ctx.fillStyle = "#ffea00";
-    ctx.fillText("SCORE: " + score, canvas.width/2, canvas.height/2 + 20);
-    
-    ctx.fillStyle = "#00ffcc";
-    ctx.fillText("RECORD: " + user.best, canvas.width/2, canvas.height/2 + 60);
-    
-    ctx.font = "20px Orbitron";
-    ctx.fillStyle = "#888";
-    ctx.fillText("Précision: " + document.getElementById('accuracy').innerText + "%", canvas.width/2, canvas.height/2 + 100);
-    
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = "#00ffcc";
-    ctx.font = "italic 20px Orbitron";
-    ctx.fillText("Clique pour rejouer", canvas.width/2, canvas.height/2 + 150);
-    
-    ctx.shadowBlur = 0;
-}
+      }
 
-// RETOUR AU MENU AU LIEU DE RECHARGER LA PAGE
-canvas.addEventListener('click', () => { 
-    if (!gameActive) {
-        // Revenir au menu sans perdre la connexion
+      ctx.fillStyle = "rgba(0,0,0,0.9)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = "#00ffcc";
+      ctx.fillStyle = "#00ffcc";
+      ctx.textAlign = "center";
+      ctx.font = "bold 50px Orbitron";
+      ctx.fillText("MISSION TERMINÉE", canvas.width/2, canvas.height/2 - 100);
+
+      ctx.shadowBlur = 15;
+      ctx.font = "25px Orbitron";
+      ctx.fillStyle = "white";
+      ctx.fillText(reason, canvas.width/2, canvas.height/2 - 40);
+
+      ctx.font = "30px Orbitron";
+      ctx.fillStyle = "#ffea00";
+      ctx.fillText("SCORE: " + score, canvas.width/2, canvas.height/2 + 20);
+
+      ctx.fillStyle = "#00ffcc";
+      ctx.fillText("RECORD: " + user.best, canvas.width/2, canvas.height/2 + 60);
+
+      ctx.font = "20px Orbitron";
+      ctx.fillStyle = "#888";
+      ctx.fillText("Précision: " + document.getElementById('accuracy').innerText + "%", canvas.width/2, canvas.height/2 + 100);
+
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#00ffcc";
+      ctx.font = "italic 20px Orbitron";
+      ctx.fillText("Clique pour rejouer", canvas.width/2, canvas.height/2 + 150);
+
+      ctx.shadowBlur = 0;
+    }
+
+    // RETOUR AU MENU AU LIEU DE RECHARGER LA PAGE
+    canvas.addEventListener('click', () => {
+      if (!gameActive) {
         document.getElementById('overlay').classList.remove('hidden');
         document.getElementById('setup-box').classList.remove('hidden');
         document.getElementById('best').innerText = user.best;
+      }
+    });
+
+    function createEffect(x, y, text, color) {
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.style.left = x + 'px';
+      div.style.top = y + 'px';
+      div.style.color = color;
+      div.innerText = text;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 800);
     }
-});
 
-function createEffect(x, y, text, color) {
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
-    div.style.color = color;
-    div.innerText = text;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 800);
-}
-
-function createParticles(x, y, color) {
-    for(let i = 0; i < 8; i++) {
+    function createParticles(x, y, color) {
+      for (let i = 0; i < 8; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
         particle.style.background = color;
-        
+
         const angle = (Math.PI * 2 * i) / 8;
         const distance = 50 + Math.random() * 30;
         const tx = Math.cos(angle) * distance;
         const ty = Math.sin(angle) * distance;
-        
+
         particle.style.setProperty('--tx', tx + 'px');
         particle.style.setProperty('--ty', ty + 'px');
-        
+
         document.body.appendChild(particle);
         setTimeout(() => particle.remove(), 600);
+      }
     }
-}
 
-function animate() {
-    if (!gameActive) return;
-    if (!isPaused) {
+    function animate() {
+      if (!gameActive) return;
+      if (!isPaused) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         const now = Date.now();
         const settings = difficultySettings[difficulty];
         const spawnRate = Math.max(300, settings.spawnRate - (score * 2));
-        
+
         if (now - lastSpawn > spawnRate) {
-            targets.push(new Target());
-            lastSpawn = now;
+          targets.push(new Target());
+          lastSpawn = now;
         }
-        
-        if(now - lastPowerupSpawn > 15000) {
-            powerups.push(new Powerup());
-            lastPowerupSpawn = now;
+
+        if (now - lastPowerupSpawn > 15000) {
+          powerups.push(new Powerup());
+          lastPowerupSpawn = now;
         }
 
         targets.forEach((t, index) => {
-            t.timer -= 16;
-            t.draw();
-            if (t.timer <= 0) {
-                targets.splice(index, 1);
-                miss();
-            }
+          t.timer -= 16;
+          t.draw();
+          if (t.timer <= 0) {
+            targets.splice(index, 1);
+            miss();
+          }
         });
-        
+
         powerups.forEach((p, index) => {
-            p.timer -= 16;
-            p.draw();
-            if(p.timer <= 0) {
-                powerups.splice(index, 1);
-            }
+          p.timer -= 16;
+          p.draw();
+          if (p.timer <= 0) {
+            powerups.splice(index, 1);
+          }
         });
 
         document.getElementById('score').innerText = score;
         document.getElementById('combo').innerText = "x" + combo;
+      }
+      requestAnimationFrame(animate);
     }
-    requestAnimationFrame(animate);
-}
 
-// LANCER LA CONNEXION AUTO AU DÉMARRAGE
-checkAutoLogin();
-</script>
+    // LANCER LA CONNEXION AUTO AU DÉMARRAGE
+    checkAutoLogin();
+  </script>
 </body>
 </html>
