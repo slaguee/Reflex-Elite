@@ -516,30 +516,27 @@ function saveUserData() {
 
 function updateGlobalLeaderboard() {
     let leaderboard = JSON.parse(localStorage.getItem('reflex_global_leaderboard')) || [];
-
-    const existingPlayer = leaderboard.find(p => p.name === user.name);
-
-    if (existingPlayer) {
-        if (user.best > existingPlayer.score) {
-            existingPlayer.score = user.best;
-        }
+    
+    // Chercher si le joueur existe déjà dans le classement
+    const existingIndex = leaderboard.findIndex(e => e.name === user.name);
+    
+    if(existingIndex >= 0) {
+        // Mettre à jour le score si c'est un nouveau record
+        leaderboard[existingIndex].score = user.best;
     } else {
-        leaderboard.push({
-            name: user.name,
-            score: user.best
-        });
+        // Ajouter le nouveau joueur
+        leaderboard.push({ name: user.name, score: user.best });
     }
-
+    
+    // Trier par score décroissant et garder top 10
     leaderboard.sort((a, b) => b.score - a.score);
     leaderboard = leaderboard.slice(0, 10);
-
+    
+    // Sauvegarder le classement global
     localStorage.setItem('reflex_global_leaderboard', JSON.stringify(leaderboard));
 }
 
-}
-
 function showLeaderboard() {
-    updateGlobalLeaderboard();
     const leaderboard = JSON.parse(localStorage.getItem('reflex_global_leaderboard')) || [];
     const container = document.getElementById('leaderboard');
     
@@ -1039,4 +1036,3 @@ checkAutoLogin();
 </script>
 </body>
 </html>
-
