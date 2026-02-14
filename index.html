@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reflex Elite - Pro Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
@@ -467,7 +468,6 @@ createStars();
 function checkAutoLogin() {
     const lastUser = localStorage.getItem('reflex_last_user');
     if (lastUser) {
-        // Connexion automatique !
         user.name = lastUser;
         loadUserData();
         showSetupMenu();
@@ -483,7 +483,7 @@ function login() {
     }
     
     user.name = name;
-    localStorage.setItem('reflex_last_user', name); // Sauvegarder pour rester connecté
+    localStorage.setItem('reflex_last_user', name);
     loadUserData();
     showSetupMenu();
 }
@@ -507,7 +507,7 @@ function loadUserData() {
 }
 
 function saveUserData() {
-    // Sauvegarder les données personnelles du joueur
+    // Sauvegarder les données personnelles
     localStorage.setItem('reflex_elite_' + user.name, JSON.stringify({ best: user.best }));
     
     // Mettre à jour le classement global
@@ -517,22 +517,17 @@ function saveUserData() {
 function updateGlobalLeaderboard() {
     let leaderboard = JSON.parse(localStorage.getItem('reflex_global_leaderboard')) || [];
     
-    // Chercher si le joueur existe déjà dans le classement
     const existingIndex = leaderboard.findIndex(e => e.name === user.name);
     
     if(existingIndex >= 0) {
-        // Mettre à jour le score si c'est un nouveau record
         leaderboard[existingIndex].score = user.best;
     } else {
-        // Ajouter le nouveau joueur
         leaderboard.push({ name: user.name, score: user.best });
     }
     
-    // Trier par score décroissant et garder top 10
     leaderboard.sort((a, b) => b.score - a.score);
     leaderboard = leaderboard.slice(0, 10);
     
-    // Sauvegarder le classement global
     localStorage.setItem('reflex_global_leaderboard', JSON.stringify(leaderboard));
 }
 
@@ -578,7 +573,6 @@ function loadInfoContent() {
     if(savedInfo) {
         container.innerHTML = savedInfo.replace(/\n/g, '<br>');
     } else {
-        // Info par défaut
         container.innerHTML = `
             <h3 style="color: var(--neon); margin-bottom: 10px;">🎮 REFLEX ELITE - PRO EDITION</h3>
             <p style="margin-bottom: 10px;">Version 2.0</p>
@@ -797,18 +791,28 @@ function startGame() {
     
     score = 0; combo = 1; targets = []; powerups = [];
     targetsHit = 0; targetsTotal = 0;
+    isPaused = false;
     gameActive = true;
+    lastSpawn = Date.now();
+    lastPowerupSpawn = Date.now();
     updateHealthBar();
+    updateAccuracy();
+    document.getElementById('score').innerText = score;
+    document.getElementById('combo').innerText = 'x' + combo;
     animate();
 }
 
 // --- CONTROLS ---
 window.addEventListener('keydown', (e) => {
-    if(e.key.toLowerCase() === 'p' && gameActive) togglePause();
+    if(e.key.toLowerCase() === 'p' && gameActive) {
+        togglePause();
+        return;
+    }
     if(e.key === 'Escape' && gameActive) {
         if(confirm('Quitter la partie ?')) {
             gameOver('MISSION ABANDONNÉE');
         }
+        return;
     }
     if(!gameActive || isPaused) return;
 
@@ -819,7 +823,14 @@ window.addEventListener('keydown', (e) => {
 });
 
 canvas.addEventListener('mousedown', (e) => {
-    if(!gameActive || isPaused) return;
+    if(!gameActive) {
+        document.getElementById('overlay').classList.remove('hidden');
+        document.getElementById('setup-box').classList.remove('hidden');
+        document.getElementById('best').innerText = user.best;
+        return;
+    }
+    
+    if(isPaused) return;
     
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -862,7 +873,7 @@ function checkHit(mx, my, inputType) {
             score += points;
             combo++;
             
-            if(mx) {
+            if(mx !== null) {
                 createEffect(mx, my, "+" + points, "#00ffcc");
                 createParticles(mx, my, t.color);
             } else {
@@ -891,7 +902,7 @@ function miss() {
 }
 
 function updateHealthBar() {
-    const percent = (health / maxHealth) * 100;
+    const percent = Math.max(0, (health / maxHealth) * 100);
     document.getElementById('healthBar').style.width = percent + '%';
 }
 
@@ -905,13 +916,10 @@ function updateAccuracy() {
 function gameOver(reason) {
     gameActive = false;
     
-    // Mettre à jour le meilleur score
     if(score > user.best) {
         user.best = score;
+        saveUserData();
     }
-    
-    // Sauvegarder dans le classement global
-    saveUserData();
     
     ctx.fillStyle = "rgba(0,0,0,0.9)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -942,20 +950,10 @@ function gameOver(reason) {
     ctx.shadowBlur = 20;
     ctx.fillStyle = "#00ffcc";
     ctx.font = "italic 20px Orbitron";
-    ctx.fillText("Clique pour rejouer", canvas.width/2, canvas.height/2 + 150);
+    ctx.fillText("Clique pour retourner au menu", canvas.width/2, canvas.height/2 + 150);
     
     ctx.shadowBlur = 0;
 }
-
-// RETOUR AU MENU AU LIEU DE RECHARGER LA PAGE
-canvas.addEventListener('click', () => { 
-    if (!gameActive) {
-        // Revenir au menu sans perdre la connexion
-        document.getElementById('overlay').classList.remove('hidden');
-        document.getElementById('setup-box').classList.remove('hidden');
-        document.getElementById('best').innerText = user.best;
-    }
-});
 
 function createEffect(x, y, text, color) {
     const div = document.createElement('div');
@@ -1031,7 +1029,7 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// LANCER LA CONNEXION AUTO AU DÉMARRAGE
+// Démarrage automatique
 checkAutoLogin();
 </script>
 </body>
